@@ -88,6 +88,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1
 
+//required by SEGGER
 #define INCLUDE_xTaskGetIdleTaskHandle  1
 #define INCLUDE_pxTaskGetStackStart		1
 
@@ -126,6 +127,6 @@ standard names. */
 #define xPortPendSVHandler PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
 
-
+#include "SEGGER_SYSVIEW_FreeRTOS.h"
 #endif /* FREERTOS_CONFIG_H */
 

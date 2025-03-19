@@ -6,6 +6,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#define DWT_CTRL    (*(volatile uint32_t*)0xE0001000)
+
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void task1_handler(void* parameters);
@@ -24,7 +26,12 @@ int main(void)
   SystemClock_Config();
 
   MX_GPIO_Init();
+  //Enable the CYCCNT counter.
+  DWT_CTRL |= ( 1 << 0);
 
+  SEGGER_SYSVIEW_Conf();
+
+  SEGGER_SYSVIEW_Start();
   //task creation
   status = xTaskCreate(task1_handler, "Task-1", 200, "Hello world from Task-1\n", 2, &task1_handle);
   status = xTaskCreate(task2_handler, "Task-2", 200, "Hello world from Task-2\n", 2, &task2_handle);
