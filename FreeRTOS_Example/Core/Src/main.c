@@ -1,17 +1,36 @@
 #include "main.h"
-#include "stdio.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void task1_handler(void* parameters);
+static void task2_handler(void* parameters);
 
 int main(void)
 {
+
+  TaskHandle_t task1_handle;
+  TaskHandle_t task2_handle;
+
+  BaseType_t status;
 
   HAL_Init();
 
   SystemClock_Config();
 
   MX_GPIO_Init();
+
+  //task creation
+  status = xTaskCreate(task1_handler, "Task-1", 200, "Hello world from Task-1\n", 2, &task1_handle);
+  status = xTaskCreate(task2_handler, "Task-2", 200, "Hello world from Task-2\n", 2, &task2_handle);
+
+  //start the freeRTOS scheduler
+  vTaskStartScheduler();
 
   while (1)
   {
@@ -24,6 +43,31 @@ int __io_putchar(int ch)
  // Write character to ITM ch.0
  ITM_SendChar(ch);
  return(ch);
+}
+
+static void task1_handler(void* parameters)
+{
+
+	char msg[100];
+
+	while(1)
+	{
+		printf((char*)parameters);
+		taskYIELD();
+	}
+
+}
+
+
+static void task2_handler(void* parameters)
+{
+	char msg[100];
+	while(1)
+	{
+		printf((char*)parameters);
+		taskYIELD();
+	}
+
 }
 
 void SystemClock_Config(void)
