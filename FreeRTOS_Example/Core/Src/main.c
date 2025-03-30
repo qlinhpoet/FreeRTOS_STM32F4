@@ -13,11 +13,14 @@ static void MX_GPIO_Init(void);
 static void task1_handler(void* parameters);
 static void task2_handler(void* parameters);
 
+static void LedGreenHandler(void* para);
+static void LedOrangeHandler(void* para);
+static void LedRedHandler(void* para);
+
 int main(void)
 {
 
-  TaskHandle_t task1_handle;
-  TaskHandle_t task2_handle;
+  TaskHandle_t LedGreenHandle, LedOrangeHandle, LedRedHandle;
 
   BaseType_t status;
 
@@ -26,18 +29,27 @@ int main(void)
   SystemClock_Config();
 
   MX_GPIO_Init();
+
   //Enable the CYCCNT counter.
   DWT_CTRL |= ( 1 << 0);
 
   SEGGER_SYSVIEW_Conf();
 
   SEGGER_SYSVIEW_Start();
+
   //task creation
-  status = xTaskCreate(task1_handler, "Task-1", 200, "Hello world from Task-1\n", 2, &task1_handle);
-  status = xTaskCreate(task2_handler, "Task-2", 200, "Hello world from Task-2\n", 2, &task2_handle);
+  status = xTaskCreate(LedGreenHandler, "GreedTask", 200, NULL, 2, &LedGreenHandle);
+  status = xTaskCreate(LedOrangeHandler, "OrangeTask", 200, NULL, 2, &LedOrangeHandle);
+  status = xTaskCreate(LedRedHandler, "RedTask", 200, NULL, 2, &LedRedHandle);
+  if (status != pdPASS)
+  {
+	  printf("Task creation failed!\n");
+	  while(1);  // Dừng nếu task không tạo được
+  }
 
   //start the freeRTOS scheduler
   vTaskStartScheduler();
+
 
   while (1)
   {
@@ -75,6 +87,33 @@ static void task2_handler(void* parameters)
 		taskYIELD();
 	}
 
+}
+
+static void LedGreenHandler(void* para)
+{
+	while(1)
+	{
+		GPIOD->ODR ^= 1<<12;
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
+}
+
+static void LedOrangeHandler(void* para)
+{
+	while(1)
+	{
+		GPIOD->ODR ^= 1<<13;
+		vTaskDelay(pdMS_TO_TICKS(800));
+	}
+}
+
+static void LedRedHandler(void* para)
+{
+	while(1)
+	{
+		GPIOD->ODR ^= 1<<14;
+		vTaskDelay(pdMS_TO_TICKS(400));
+	}
 }
 
 void SystemClock_Config(void)
@@ -118,6 +157,10 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
+  /* Led configuration */
+  RCC->AHB1ENR |= 1<<3;	//gpio D clock enable
+  GPIOD->MODER &= (uint32_t)~0xFF000000;
+  GPIOD->MODER |= (uint32_t)0x55000000;		//output mode
 }
 
 void Error_Handler(void)
